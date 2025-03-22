@@ -1,0 +1,14 @@
+.volume-slider {
+    -fx-pref-width: 80px;
+    -fx-pref-height: 20px;
+    -fx-show-value-on-interaction: true;
+}
+
+.volume-slider .track {
+    -fx-pref-width: 66px;
+    -fx-pref-height: 20px;
+    }
+
+.volume-slider .thumb {
+
+}
