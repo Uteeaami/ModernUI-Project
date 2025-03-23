@@ -8,40 +8,40 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-public class FooterComponent extends VBox {
+public class FooterBar extends VBox {
   private final MediaControllerAPI mediaControllerAPI;
 
-  public ProgressBarComponent progressBarComponent;
+  public ProgressBar progressBar;
   public Button playButton;
   public boolean isPlaying;
-  public VolumeComponent volumeComponent;
-  public ControlsComponent controlsComponent;
+  public VolumeSlider volumeSlider;
+  public Controls controls;
 
-  public FooterComponent() {
+  public FooterBar() {
     this.mediaControllerAPI = MediaController.getInstance();
-    this.progressBarComponent = new ProgressBarComponent();
+    this.progressBar = new ProgressBar();
     this.playButton = new Button("▶");
-    this.volumeComponent = new VolumeComponent();
-    this.controlsComponent = new ControlsComponent();
+    this.volumeSlider = new VolumeSlider();
+    this.controls = new Controls();
     this.isPlaying = false;
     setActions();
 
-    HBox controls = new HBox(playButton, controlsComponent, volumeComponent);
+    HBox controls = new HBox(playButton, this.controls, volumeSlider);
 
     this.setPadding(new Insets(5, 10, 5, 10));
     this.setMinHeight(52);
-    this.getChildren().addAll(progressBarComponent, controls);
+    this.getChildren().addAll(progressBar, controls);
     this.setStyles();
   }
 
   public void setActions() {
     playButton.setOnAction(e -> this.mediaControllerAPI.playOrPause(isPlaying));
-    controlsComponent.stopMediaButton.setOnAction(e -> this.mediaControllerAPI.stop());
-    controlsComponent.nextMediaButton.setOnAction(e -> this.mediaControllerAPI.playNextMedia());
-    controlsComponent.previousMediaButton.setOnAction(
-        e -> this.mediaControllerAPI.playPreviousMedia());
+    controls.stopMediaButton.setOnAction(e -> this.mediaControllerAPI.stop());
+    controls.nextMediaButton.setOnAction(e -> this.mediaControllerAPI.playNextMedia());
+    controls.previousMediaButton.setOnAction(e -> this.mediaControllerAPI.playPreviousMedia());
   }
 
+  // TODO: As a improvement use real icons
   public void setPlayingStatus(boolean playing) {
     if (playing) {
       playButton.setText("⏸");

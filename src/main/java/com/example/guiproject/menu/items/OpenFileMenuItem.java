@@ -1,8 +1,10 @@
 package com.example.guiproject.menu.items;
 
+import com.example.guiproject.ContainerManager;
 import com.example.guiproject.control.MediaController;
 import com.example.guiproject.control.MediaControllerAPI;
 import com.example.guiproject.menu.common.MenuItemFactory;
+import com.example.guiproject.view.ContainerType;
 import java.io.File;
 import javafx.scene.control.MenuItem;
 import javafx.stage.FileChooser;
@@ -34,6 +36,7 @@ public class OpenFileMenuItem implements MenuItemFactory {
           File selectedFile = fileChooser.showOpenDialog(null);
           if (selectedFile != null) {
             mediaControllerAPI.loadMedia(selectedFile);
+            ContainerManager.switchContainer(ContainerType.MEDIA_CONTAINER);
           }
         });
 

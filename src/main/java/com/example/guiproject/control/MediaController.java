@@ -1,6 +1,7 @@
 package com.example.guiproject.control;
 
-import com.example.guiproject.view.footer.FooterComponent;
+import com.example.guiproject.view.footer.FooterBar;
+import com.example.guiproject.view.footer.VolumeSlider;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,14 +12,16 @@ import javafx.util.Duration;
 
 public class MediaController implements MediaControllerAPI {
   private static MediaController instance;
+  private final double INITIAL_VOLUME = 0.5;
+  private final int INITIAL_INDEX = -1;
 
   private MediaPlayer mediaPlayer;
   private List<File> playlist;
-  private int currentIndex = -1;
-  private double currentVolume = 0.5;
+  private int currentIndex = INITIAL_INDEX;
+  private double currentVolume = INITIAL_VOLUME;
 
   private MediaView mediaView;
-  private FooterComponent mediaFooterComponent;
+  private FooterBar mediaFooterBar;
   private Runnable onPlaylistUpdated;
 
   private MediaController() {}
@@ -31,76 +34,107 @@ public class MediaController implements MediaControllerAPI {
   }
 
   @Override
-  public void initialize(MediaView mediaView, FooterComponent footerComponent) {
+  public void initialize(MediaView mediaView, FooterBar footerBar) {
     this.mediaView = mediaView;
-    this.mediaFooterComponent = footerComponent;
+    this.mediaFooterBar = footerBar;
+    setupMediaView();
+    setupVolumeSlider();
+  }
+
+  // TODO: As a improvement, make the view dynamic
+  private void setupMediaView() {
     this.mediaView.setFitHeight(320);
+  }
 
-    this.mediaFooterComponent.volumeComponent.volumeSlider.setValue(50);
-    this.mediaFooterComponent.volumeComponent.volumeSlider.setMin(0);
-    this.mediaFooterComponent.volumeComponent.volumeSlider.setMax(100);
+  private void setupVolumeSlider() {
+    if (mediaFooterBar != null) {
+      VolumeSlider volumeSlider = mediaFooterBar.volumeSlider;
+      volumeSlider.slider.setValue(50);
+      volumeSlider.slider.setMin(0);
+      volumeSlider.slider.setMax(100);
 
-    this.currentVolume = mediaFooterComponent.volumeComponent.volumeSlider.getValue() / 100;
+      this.currentVolume = volumeSlider.slider.getValue() / 100;
 
-    this.mediaFooterComponent
-        .volumeComponent
-        .volumeSlider
-        .valueProperty()
-        .addListener(
-            (obs, oldVal, newVal) -> {
-              this.currentVolume = newVal.doubleValue() / 100;
-              if (mediaPlayer != null) {
-                mediaPlayer.setVolume(currentVolume);
-              }
-            });
+      volumeSlider
+          .slider
+          .valueProperty()
+          .addListener(
+              (obs, oldVal, newVal) -> {
+                this.currentVolume = newVal.doubleValue() / 100;
+                if (mediaPlayer != null) {
+                  mediaPlayer.setVolume(currentVolume);
+                }
+              });
+    }
   }
 
   @Override
   public void loadMedia(File file) {
-    if (file != null && mediaView != null) {
-      String mediaPath = file.toURI().toString();
+    if (file == null || mediaView == null) return;
 
-      if (mediaPlayer != null) {
-        mediaPlayer.stop();
-        mediaPlayer.dispose();
-      }
+    clearMediaPlayer();
 
-      Media media = new Media(mediaPath);
-      mediaPlayer = new MediaPlayer(media);
-      mediaView.setMediaPlayer(mediaPlayer);
+    Media media = new Media(file.toURI().toString());
+    mediaPlayer = new MediaPlayer(media);
+    mediaView.setMediaPlayer(mediaPlayer);
 
-      if (mediaFooterComponent != null) {
-        mediaFooterComponent.playButton.setDisable(false);
-        mediaFooterComponent.progressBarComponent.progressBar.setDisable(false);
-        mediaPlayer.setVolume(mediaFooterComponent.volumeComponent.volumeSlider.getValue() / 100);
-        mediaPlayer.setVolume(currentVolume);
+    setupMediaPlayer(media);
 
-        mediaPlayer.setOnReady(
-            () -> {
-              Duration totalDuration = media.getDuration();
-              mediaFooterComponent.progressBarComponent.totalTimeLabel.setText(
-                  formatTime(totalDuration));
-            });
+    mediaPlayer.play();
+    if (mediaFooterBar != null) {
+      mediaFooterBar.setPlayingStatus(true);
+    }
+  }
 
-        mediaPlayer
-            .currentTimeProperty()
-            .addListener(
-                (observable, oldValue, newValue) -> {
-                  if (!mediaFooterComponent.progressBarComponent.progressBar.isValueChanging()) {
-                    double progress = newValue.toSeconds() / media.getDuration().toSeconds();
-                    mediaFooterComponent.progressBarComponent.progressBar.setValue(progress * 100);
-                    mediaFooterComponent.progressBarComponent.currentTimeLabel.setText(
-                        formatTime(newValue));
-                  }
-                });
+  private void setupMediaPlayer(Media media) {
+    if (mediaFooterBar == null) return;
 
-        mediaPlayer.setOnEndOfMedia(this::playNextMedia);
-      }
+    mediaFooterBar.playButton.setDisable(false);
+    mediaFooterBar.progressBar.slider.setDisable(false);
+    mediaPlayer.setVolume(currentVolume);
 
-      mediaPlayer.play();
-      if (mediaFooterComponent != null) {
-        mediaFooterComponent.setPlayingStatus(true);
-      }
+    mediaFooterBar.progressBar.slider.setOnMouseClicked(
+        event -> {
+          if (mediaPlayer != null) {
+            double clickPosition = event.getX() / mediaFooterBar.progressBar.slider.getWidth();
+            Duration seekTime = mediaPlayer.getTotalDuration().multiply(clickPosition);
+            mediaPlayer.seek(seekTime);
+          }
+        });
+
+    mediaPlayer.setOnReady(() -> updateTotalDurationLabel(media));
+
+    mediaPlayer
+        .currentTimeProperty()
+        .addListener(
+            (observable, oldValue, newValue) -> updateProgressBar(newValue, media.getDuration()));
+
+    mediaPlayer.setOnEndOfMedia(this::playNextMedia);
+  }
+
+  private void updateTotalDurationLabel(Media media) {
+    Duration totalDuration = media.getDuration();
+    mediaFooterBar.progressBar.totalTimeLabel.setText(formatTime(totalDuration));
+  }
+
+  private void updateProgressBar(Duration newValue, Duration totalDuration) {
+    if (!mediaFooterBar.progressBar.slider.isValueChanging()) {
+      double progress = newValue.toSeconds() / totalDuration.toSeconds();
+      mediaFooterBar.progressBar.slider.setValue(progress * 100);
+      mediaFooterBar.progressBar.currentTimeLabel.setText(formatTime(newValue));
+    }
+  }
+
+  private String formatTime(Duration duration) {
+    int minutes = (int) duration.toMinutes();
+    int seconds = (int) duration.toSeconds() % 60;
+    return String.format("%02d:%02d", minutes, seconds);
+  }
+
+  private void clearMediaPlayer() {
+    if (mediaPlayer != null) {
+      mediaPlayer.stop();
+      mediaPlayer.dispose();
     }
   }
 
@@ -146,31 +180,11 @@ public class MediaController implements MediaControllerAPI {
   }
 
   @Override
-  public void pause() {
-    if (mediaPlayer != null) {
-      mediaPlayer.pause();
-      if (mediaFooterComponent != null) {
-        mediaFooterComponent.setPlayingStatus(false);
-      }
-    }
-  }
-
-  @Override
-  public void play() {
-    if (mediaPlayer != null) {
-      mediaPlayer.play();
-      if (mediaFooterComponent != null) {
-        mediaFooterComponent.setPlayingStatus(true);
-      }
-    }
-  }
-
-  @Override
   public void stop() {
     if (mediaPlayer != null) {
       mediaPlayer.stop();
-      if (mediaFooterComponent != null) {
-        mediaFooterComponent.setPlayingStatus(false);
+      if (mediaFooterBar != null) {
+        mediaFooterBar.setPlayingStatus(false);
       }
     }
   }
@@ -185,13 +199,13 @@ public class MediaController implements MediaControllerAPI {
     if (mediaPlayer != null) {
       if (isPlaying) {
         mediaPlayer.pause();
-        if (mediaFooterComponent != null) {
-          mediaFooterComponent.setPlayingStatus(false);
+        if (mediaFooterBar != null) {
+          mediaFooterBar.setPlayingStatus(false);
         }
       } else {
         mediaPlayer.play();
-        if (mediaFooterComponent != null) {
-          mediaFooterComponent.setPlayingStatus(true);
+        if (mediaFooterBar != null) {
+          mediaFooterBar.setPlayingStatus(true);
         }
       }
     }
@@ -204,9 +218,29 @@ public class MediaController implements MediaControllerAPI {
       currentVolume = newVolume;
       if (mediaPlayer != null) {
         mediaPlayer.setVolume(currentVolume);
-        if (mediaFooterComponent != null) {
-          mediaFooterComponent.volumeComponent.volumeSlider.setValue(currentVolume * 100);
+        if (mediaFooterBar != null) {
+          mediaFooterBar.volumeSlider.slider.setValue(currentVolume * 100);
         }
+      }
+    }
+  }
+
+  @Override
+  public void pause() {
+    if (mediaPlayer != null) {
+      mediaPlayer.pause();
+      if (mediaFooterBar != null) {
+        mediaFooterBar.setPlayingStatus(false);
+      }
+    }
+  }
+
+  @Override
+  public void play() {
+    if (mediaPlayer != null) {
+      mediaPlayer.play();
+      if (mediaFooterBar != null) {
+        mediaFooterBar.setPlayingStatus(true);
       }
     }
   }
@@ -219,7 +253,7 @@ public class MediaController implements MediaControllerAPI {
       if (newTime.lessThan(mediaPlayer.getTotalDuration())) {
         mediaPlayer.seek(newTime);
       } else {
-        mediaPlayer.seek(mediaPlayer.getTotalDuration()); // Jump to the end if exceeding duration
+        mediaPlayer.seek(mediaPlayer.getTotalDuration());
       }
     }
   }
@@ -232,14 +266,8 @@ public class MediaController implements MediaControllerAPI {
       if (newTime.greaterThan(Duration.ZERO)) {
         mediaPlayer.seek(newTime);
       } else {
-        mediaPlayer.seek(Duration.ZERO); // Jump to the beginning if below zero
+        mediaPlayer.seek(Duration.ZERO);
       }
     }
-  }
-
-  private String formatTime(Duration duration) {
-    int minutes = (int) duration.toMinutes();
-    int seconds = (int) duration.toSeconds() % 60;
-    return String.format("%02d:%02d", minutes, seconds);
   }
 }

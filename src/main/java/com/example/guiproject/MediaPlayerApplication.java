@@ -8,7 +8,7 @@ import com.example.guiproject.view.ContainerType;
 import com.example.guiproject.view.GuideContainer;
 import com.example.guiproject.view.MediaContainer;
 import com.example.guiproject.view.PlayListContainer;
-import com.example.guiproject.view.footer.FooterComponent;
+import com.example.guiproject.view.footer.FooterBar;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -17,7 +17,7 @@ import javafx.stage.Stage;
 
 public class MediaPlayerApplication extends Application {
 
-  private final FooterComponent footerComponent;
+  private final FooterBar footerBar;
   private final MainMenuBar mainMenuBar;
   private final StackPane contentContainer;
   private final MediaControllerAPI mediaControllerAPI;
@@ -28,11 +28,13 @@ public class MediaPlayerApplication extends Application {
     GuideContainer guideContainer = new GuideContainer();
 
     this.mainMenuBar = new MainMenuBar();
-    this.footerComponent = new FooterComponent();
+    this.footerBar = new FooterBar();
     this.contentContainer = new StackPane();
 
     mediaControllerAPI = MediaController.getInstance();
-    mediaControllerAPI.initialize(mediaContainer.getMediaView(), footerComponent);
+    // TODO: This causes a bit of unneeded dependencies, as a future improvement
+    //       figure out to initialize the controller without media view and footer
+    mediaControllerAPI.initialize(mediaContainer.getMediaView(), footerBar);
 
     ContainerManager.registerContainer(ContainerType.MEDIA_CONTAINER, mediaContainer.getView());
     ContainerManager.registerContainer(
@@ -40,7 +42,7 @@ public class MediaPlayerApplication extends Application {
     ContainerManager.registerContainer(ContainerType.GUIDE_CONTAINER, guideContainer.getView());
 
     ContainerManager.setContainer(contentContainer);
-    contentContainer.getChildren().add(mediaContainer.getView());
+    contentContainer.getChildren().add(guideContainer.getView());
   }
 
   @Override
@@ -63,7 +65,7 @@ public class MediaPlayerApplication extends Application {
     BorderPane borderPane = new BorderPane();
     borderPane.setTop(mainMenuBar);
     borderPane.setCenter(contentContainer);
-    borderPane.setBottom(footerComponent);
+    borderPane.setBottom(footerBar);
 
     Scene scene = new Scene(borderPane, 600, 450);
     KeyboardEventHandler keyboardHandler =

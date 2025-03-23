@@ -1,6 +1,6 @@
 package com.example.guiproject.control;
 
-import com.example.guiproject.view.footer.FooterComponent;
+import com.example.guiproject.view.footer.FooterBar;
 import java.io.File;
 import java.util.List;
 import javafx.scene.media.MediaView;
@@ -26,7 +26,7 @@ public interface MediaControllerAPI {
 
   void setCurrentIndex(int index);
 
-  void initialize(MediaView mediaView, FooterComponent footerComponent);
+  void initialize(MediaView mediaView, FooterBar footerBar);
 
   void adjustVolume(double delta);
 

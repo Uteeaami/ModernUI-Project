@@ -17,7 +17,7 @@ public class GuideContainer {
     textArea.setWrapText(true);
     textArea.setEditable(false);
     textArea.setStyle("-fx-font-size: 14px;");
-    textArea.setPrefSize(Double.MAX_VALUE, Double.MAX_VALUE); // Ensure full expansion
+    textArea.setPrefSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
     ScrollPane scrollPane = new ScrollPane(textArea);
     scrollPane.setFitToWidth(true);
@@ -29,7 +29,7 @@ public class GuideContainer {
   }
 
   private String getMediaAppGuide() {
-    return "Welcome to my Media Application! This application allows you to play both audio and video files, "
+    return "Welcome to my Media Application, built with JavaFX! This application allows you to play both audio and video files, "
         + "supporting formats such as MP3, MP4, and WAV.\n\n"
         + "How to Use:\n"
         + "- File Menu: Open a single media file for playback or choose a folder to add all supported files to the playlist.\n"
@@ -51,8 +51,7 @@ public class GuideContainer {
         + "Volume Control:\n"
         + "- Ctrl + Up Arrow → Increase Volume\n"
         + "- Ctrl + Down Arrow → Decrease Volume\n\n"
-        + "Happy Listening!\n"
-        + "(This text was enhanced by a mutual acquittance)";
+        + "Happy Listening!\n";
   }
 
   public Node getView() {
