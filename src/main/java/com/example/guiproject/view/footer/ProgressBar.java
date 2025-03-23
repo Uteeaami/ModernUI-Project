@@ -5,22 +5,22 @@ import javafx.scene.control.Slider;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
-public class ProgressBarComponent extends HBox {
+public class ProgressBar extends HBox {
   public Label currentTimeLabel;
-  public Slider progressBar;
+  public Slider slider;
   public Label totalTimeLabel;
 
   private final String NO_TIME_LABEL = "--:--";
 
-  public ProgressBarComponent() {
+  public ProgressBar() {
     this.currentTimeLabel = new Label(NO_TIME_LABEL);
-    this.progressBar = new Slider();
+    this.slider = new Slider();
     this.totalTimeLabel = new Label(NO_TIME_LABEL);
 
-    HBox.setHgrow(progressBar, Priority.ALWAYS);
+    HBox.setHgrow(slider, Priority.ALWAYS);
 
     setSpacing(10);
 
-    getChildren().addAll(currentTimeLabel, progressBar, totalTimeLabel);
+    getChildren().addAll(currentTimeLabel, slider, totalTimeLabel);
   }
 }

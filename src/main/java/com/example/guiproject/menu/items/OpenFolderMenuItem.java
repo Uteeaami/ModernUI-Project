@@ -1,8 +1,10 @@
 package com.example.guiproject.menu.items;
 
+import com.example.guiproject.ContainerManager;
 import com.example.guiproject.control.MediaController;
 import com.example.guiproject.control.MediaControllerAPI;
 import com.example.guiproject.menu.common.MenuItemFactory;
+import com.example.guiproject.view.ContainerType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,8 +40,9 @@ public class OpenFolderMenuItem implements MenuItemFactory {
             if (!mediaFiles.isEmpty()) {
               mediaControllerAPI.setPlaylist(mediaFiles);
               mediaControllerAPI.playFirstMedia();
+              ContainerManager.switchContainer(ContainerType.MEDIA_CONTAINER);
             } else {
-              System.out.println("No media files found in the selected directory.");
+              System.err.println("No media files found in the selected directory.");
             }
           }
         });

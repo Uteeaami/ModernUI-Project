@@ -27,6 +27,7 @@ public class PlayListContainer {
     MediaController.getInstance().setOnPlaylistUpdated(this::refreshPlaylist);
   }
 
+  /** Customizes the listView to display File objects names, instead of full file paths */
   private void setupCellFactory() {
     listView.setCellFactory(
         lv ->
@@ -43,6 +44,7 @@ public class PlayListContainer {
             });
   }
 
+  /** Used to ensure the UI is in sync with the playlist */
   public void refreshPlaylist() {
     List<File> playlist = mediaControllerAPI.getPlaylist();
     observablePlaylist.clear();
